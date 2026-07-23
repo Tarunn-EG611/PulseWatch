@@ -1,6 +1,6 @@
 # PulseWatch — Linux Commands Reference
 
-A running log of every Linux/bash command used while building PulseWatch, organized by phase, with a one-line explanation of what each does.
+A running log of every Linux/bash command used while building PulseWatch.
 
 ---
 
