@@ -2,17 +2,17 @@ import psutil
 import time
 from datetime import datetime
 
-# Thresholds — adjust these based on what counts as "concerning" for your setup
-CPU_THRESHOLD = 85.0      # percent
-RAM_THRESHOLD = 85.0      # percent
-DISK_THRESHOLD = 90.0     # percent
+                                                                               
+CPU_THRESHOLD = 85.0               
+RAM_THRESHOLD = 85.0               
+DISK_THRESHOLD = 90.0              
 
-CHECK_INTERVAL = 5        # seconds between checks
+CHECK_INTERVAL = 5                                
 
 
 def get_system_stats() -> dict:
     """Collect current CPU, RAM, and disk usage."""
-    cpu_percent = psutil.cpu_percent(interval=1)  # measured over 1 second for accuracy
+    cpu_percent = psutil.cpu_percent(interval=1)                                       
     ram = psutil.virtual_memory()
     disk = psutil.disk_usage("/")
 

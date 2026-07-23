@@ -5,19 +5,19 @@ from datetime import datetime
 
 SYSLOG_PATH = Path("/var/log/syslog")
 
-# Regex to break apart each syslog line into its core parts
+                                                           
 LOG_PATTERN = re.compile(
-    r"^(?P<timestamp>\S+)\s+"        # ISO timestamp
-    r"(?P<hostname>\S+)\s+"          # hostname
-    r"(?P<process>[\w\-\.]+)"        # process name
-    r"(?:\[(?P<pid>\d+)\])?:\s+"     # optional [PID]
-    r"(?P<message>.*)$"              # the rest of the message
+    r"^(?P<timestamp>\S+)\s+"                       
+    r"(?P<hostname>\S+)\s+"                    
+    r"(?P<process>[\w\-\.]+)"                      
+    r"(?:\[(?P<pid>\d+)\])?:\s+"                     
+    r"(?P<message>.*)$"                                       
 )
 
-# Strips ANSI color escape codes like \033[36m or \033[0m
+                                                         
 ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*m|#033\[[0-9;]*m")
 
-# Keyword-based severity classification
+                                       
 SEVERITY_RULES = [
     ("CRITICAL", ["panic", "fatal", "critical"]),
     ("ERROR", ["error", "failed", "could not", "denied", "unable to"]),
@@ -61,7 +61,7 @@ def parse_line(raw_line: str) -> dict | None:
 def follow(file_path: Path):
     """Generator that yields new lines appended to a file, like `tail -f`."""
     with open(file_path, "r") as f:
-        f.seek(0, 2)  # jump to the end of the file
+        f.seek(0, 2)                               
         while True:
             line = f.readline()
             if not line:
@@ -75,7 +75,7 @@ def main():
     for raw_line in follow(SYSLOG_PATH):
         parsed = parse_line(raw_line)
         if parsed is None:
-            continue  # skip lines that don't match the expected format
+            continue                                                   
 
         if parsed["severity"] in ("ERROR", "CRITICAL", "WARNING"):
             print(f"[{parsed['severity']}] {parsed['process']} — {parsed['message']}")
