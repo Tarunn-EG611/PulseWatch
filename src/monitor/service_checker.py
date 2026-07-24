@@ -6,6 +6,7 @@ WATCHED_SERVICES = [
     "systemd",
     "cron",
     "dbus-daemon",
+    "sleep",
 ]
 
 CHECK_INTERVAL = 5
