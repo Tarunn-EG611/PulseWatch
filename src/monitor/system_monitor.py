@@ -1,18 +1,23 @@
 import psutil
 import time
+import sys
+from pathlib import Path
 from datetime import datetime
 
-                                                                               
-CPU_THRESHOLD = 85.0               
-RAM_THRESHOLD = 85.0               
-DISK_THRESHOLD = 90.0              
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
-CHECK_INTERVAL = 5                                
+from src.storage.db import init_db, insert_system_metrics
+from src.alerts.slack_alert import send_alert_with_cooldown
+
+CPU_THRESHOLD = 85.0
+RAM_THRESHOLD = 85.0
+DISK_THRESHOLD = 90.0
+
+CHECK_INTERVAL = 5
 
 
 def get_system_stats() -> dict:
-    """Collect current CPU, RAM, and disk usage."""
-    cpu_percent = psutil.cpu_percent(interval=1)                                       
+    cpu_percent = psutil.cpu_percent(interval=1)
     ram = psutil.virtual_memory()
     disk = psutil.disk_usage("/")
 
@@ -29,7 +34,6 @@ def get_system_stats() -> dict:
 
 
 def check_thresholds(stats: dict) -> list[str]:
-    """Return a list of alert messages for any metric exceeding its threshold."""
     alerts = []
 
     if stats["cpu_percent"] > CPU_THRESHOLD:
@@ -53,6 +57,7 @@ def check_thresholds(stats: dict) -> list[str]:
 
 
 def main():
+    init_db()
     print("Starting system resource monitor... (Ctrl+C to stop)\n")
     while True:
         stats = get_system_stats()
@@ -64,9 +69,19 @@ def main():
             f"Disk: {stats['disk_percent']}%"
         )
 
+        insert_system_metrics(
+            stats["timestamp"],
+            stats["cpu_percent"],
+            stats["ram_percent"],
+            stats["ram_used_gb"],
+            stats["disk_percent"],
+            stats["disk_used_gb"],
+        )
+
         alerts = check_thresholds(stats)
         for alert in alerts:
             print(f"  🚨 ALERT: {alert}")
+            send_alert_with_cooldown(alert[:30], alert)
 
         time.sleep(CHECK_INTERVAL)
 

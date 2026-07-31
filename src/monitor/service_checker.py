@@ -1,12 +1,19 @@
+
 import psutil
 import time
+import sys
+from pathlib import Path
 from datetime import datetime
+
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+
+from src.storage.db import init_db, insert_service_status
+from src.alerts.slack_alert import send_alert_with_cooldown
 
 WATCHED_SERVICES = [
     "systemd",
     "cron",
     "dbus-daemon",
-    "sleep",
 ]
 
 CHECK_INTERVAL = 5
@@ -27,6 +34,7 @@ def check_services(service_list: list[str]) -> dict:
 
 
 def main():
+    init_db()
     print("Starting service health checker... (Ctrl+C to stop)\n")
     previous_state = {service: True for service in WATCHED_SERVICES}
 
@@ -38,11 +46,21 @@ def main():
             status = "UP" if is_running else "DOWN"
             print(f"[{timestamp}] {service}: {status}")
 
+            insert_service_status(timestamp, service, status)
+
             if is_running != previous_state[service]:
                 if not is_running:
                     print(f"  🚨 ALERT: {service} has STOPPED!")
+                    send_alert_with_cooldown(
+                        f"service_down_{service}",
+                        f"Service *{service}* has STOPPED at {timestamp}!"
+                    )
                 else:
                     print(f"  ✅ RECOVERED: {service} is back UP.")
+                    send_alert_with_cooldown(
+                        f"service_up_{service}",
+                        f"Service *{service}* has RECOVERED at {timestamp}."
+                    )
 
         previous_state = current_state
         time.sleep(CHECK_INTERVAL)
