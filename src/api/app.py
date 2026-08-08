@@ -1,12 +1,14 @@
 import sys
 from pathlib import Path
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
 from src.storage.db import get_connection, init_db
 
 app = Flask(__name__)
+CORS(app)
 
 
 @app.route("/api/health", methods=["GET"])
